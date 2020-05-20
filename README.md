@@ -16,4 +16,4 @@
 >27-05-2020
 
 
-To check the results, have a look at the [Jupyter Notebook](Trabalho-1-C-93392-JoelFilipeRodriguesPaula.ipynb)
+To check the results, have a look at the [Jupyter Notebook](Projeto-Final-92478_93259_93392.ipynb)
