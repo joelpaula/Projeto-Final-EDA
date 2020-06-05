@@ -1,5 +1,8 @@
 {
     "cSpell.words": [
+        "eigen",
+        "numpy",
+        "pyplot",
         "timeit"
     ]
 }
