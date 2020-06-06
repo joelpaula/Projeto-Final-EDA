@@ -1,5 +1,7 @@
 from enum import Enum
 from Graph import Vertex, Edge
+from DiGraph import DiGraph
+from UpdatableBinaryHeap import UpdatableBinaryHeap
 
 class Station(Vertex):
     def __init__(self, id, name, latitude, longitude):
@@ -65,3 +67,48 @@ class Connection(Edge):
     def __repr__(self):
         return str(self)
 
+class TrainGraph(DiGraph):
+    def __init__(self):
+        super().__init__(directed=False)
+
+    def shortest_path(self, origin, destination, peak):
+        """"
+        Calculates shortest path from origin station to destination station.
+        Returns a tuple (time, path), where:
+         `time` is the path's time in minutes;
+         `path` is a list with Stations, ordered from origin to destination.
+        """
+        cloud = {}
+        paths = {}
+        priority_queue = UpdatableBinaryHeap()
+
+        priority_queue.add(0, (origin, None))
+
+        while not priority_queue.is_empty():
+            d, (v, incoming_edge) = priority_queue.first()
+            if v not in paths.keys():
+                paths[v] = None
+            cloud[v] = d
+            if v is destination:
+                break
+            for edge in self.get_incident_edges(v):
+                u = edge.opposite(v)
+                sc_pair = (u, edge)
+                if u not in cloud:
+                    if incoming_edge:
+                        lines = incoming_edge.lines
+                    else:
+                        lines = edge.lines
+                    weight = edge.get_time(peak, lines)
+                    if priority_queue.get_key(sc_pair) is None or priority_queue.get_key(sc_pair) > d + weight:
+                        paths[u]= v
+                        priority_queue.update_or_add(d + weight, sc_pair)
+
+        return cloud[v], TrainGraph.__get_path(paths, destination)
+
+    @staticmethod
+    def __get_path(path_dict, origin):
+        if path_dict[origin] is None:
+            return [origin]
+        else:
+            return TrainGraph.__get_path(path_dict, path_dict[origin]) + [origin]

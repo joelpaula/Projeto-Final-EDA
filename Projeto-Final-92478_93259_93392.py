@@ -5,9 +5,8 @@ from enum import Enum
 from haversine import haversine, Unit
 from collections import namedtuple
 from Graph import Graph, Edge #, Vertex
-from TrainGraph import Station, Connection, peak_type
-from DiGraph import DiGraph
-from UpdatableBinaryHeap import UpdatableBinaryHeap
+from TrainGraph import Station, Connection, peak_type, TrainGraph
+
 
 
 df_stations = pd.read_csv("LondonTube/london.stations.txt")
@@ -137,7 +136,7 @@ print("Tempos e distâncias de ligação lidos:", sum(len(it.keys()) for it in i
 
 
 # Criar o grafo pesado e dirigido:
-weighted_gr = DiGraph()
+subway_wgr = TrainGraph()
 
 def get_weights(from_ts, to_ts, line, use_oposite_direction=False, calculate_weights=False):
     """Get the weights (time and distance) for a line from station `from_ts` to 
@@ -165,37 +164,37 @@ def get_weights(from_ts, to_ts, line, use_oposite_direction=False, calculate_wei
     elif calculate_weights:
         distance_kms = haversine(train_stations[from_ts].geo_ref(), train_stations[to_ts].geo_ref())
         # assume 30km/h speed
-        time_mins = distance_kms * 2 # distance x 60mins / 30km
+        time_mins = round(distance_kms * 2, 4) # distance x 60mins / 30km
         weights = ConnectionWeights(line, from_ts, to_ts, distance_kms, time_mins, time_mins, time_mins)
     return weights
 
 # read train stations    
-train_stations = {}  # TODO Use BST
+train_stations = {} 
 for ts in df_stations.itertuples():
     s = Station(id=ts.id,
                 name=ts.name,
                 latitude=ts.latitude,
                 longitude=ts.longitude)
-    weighted_gr.insert_vertex(s)
+    subway_wgr.insert_vertex(s)
     train_stations[s.id] = s
 
 # now read all the connections and create the edges for these connections
 for cn in df_connections.itertuples():
     weights = get_weights(cn.station1, cn.station2, cn.line)
-    c = weighted_gr.get_edge(train_stations[cn.station1], train_stations[cn.station2])
+    c = subway_wgr.get_edge(train_stations[cn.station1], train_stations[cn.station2])
     if c:
         # connection already exists - add the line
         c.add_line(cn.line)
     elif weights:
         c = Connection(train_stations[cn.station1], train_stations[cn.station2], weights.distance_km,
             weights.off_peak_mins, weights.am_peak_mins, weights.inter_peak_mins, cn.line)
-        weighted_gr.insert_edge(c)
+        subway_wgr.insert_edge(c)
     else:
         c = Connection(train_stations[cn.station1], train_stations[cn.station2], 0, 0, 0, 0, cn.line)
-        weighted_gr.insert_edge(c)
+        subway_wgr.insert_edge(c)
 
 # calculate missing weights (distance + times)
-for cn in weighted_gr.edges():
+for cn in subway_wgr.edges():
     if cn.distance_km == 0:
         weights = get_weights(cn.origin.id, cn.destination.id, 0, True, True)
         cn.distance_km = weights.distance_km
@@ -203,44 +202,10 @@ for cn in weighted_gr.edges():
         cn.set_time(weights.inter_peak_mins, peak_type.INTER_PEAK)
         cn.set_time(weights.off_peak_mins, peak_type.OFF_PEAK)
 
-print("Stations: ", weighted_gr.vertex_count())
-print("Connections: ", weighted_gr.edge_count())
+print("Stations: ", subway_wgr.vertex_count())
+print("Connections: ", subway_wgr.edge_count())
 
 # Próximo passo: pesquisar distancia entre Amersham (id 6) e Wimbledon (id 299).
-def shortest_path(gr, origin, destination, peak):
-    cloud = {}
-    paths = {}
-    priority_queue = UpdatableBinaryHeap()
-    # distances = {}
-    priority_queue.add(0, (origin, None))
-
-    while not priority_queue.is_empty():
-        d, (v, incoming_edge) = priority_queue.first()
-        if v not in paths.keys():
-            paths[v] = None
-        cloud[v] = d
-        if v is destination:
-            break
-        for edge in gr.get_incident_edges(v):
-            u = edge.opposite(v)
-            sc_pair = (u, edge)
-            if u not in cloud:
-                if incoming_edge:
-                    lines = incoming_edge.lines
-                else:
-                    lines = edge.lines
-                weight = edge.get_time(peak, lines)
-                if priority_queue.get_key(sc_pair) is None or priority_queue.get_key(sc_pair) > d + weight:
-                    paths[u]= v
-                    priority_queue.update_or_add(d + weight, sc_pair)
-
-    return cloud[v], get_path(paths, destination)
-
-def get_path(path_dict, origin):
-    if path_dict[origin] is None:
-        return [origin]
-    else:
-        return get_path(path_dict, path_dict[origin]) + [origin]
 
 # Próximo passo: pesquisar distancia entre Amersham (id 6) e Wimbledon (id 299).
 # Baker street = 11; Green Park = 107
@@ -249,7 +214,7 @@ def get_path(path_dict, origin):
 # Baker street = 11; Notting Hill Gate = 186
 from_station = 11
 to_station = 186
-travel_time, travel_path = shortest_path(weighted_gr, train_stations[from_station], train_stations[to_station], peak_type.AM_PEAK)
+travel_time, travel_path = subway_wgr.shortest_path(train_stations[from_station], train_stations[to_station], peak_type.AM_PEAK)
 #cl = shortest_path(weighted_gr, train_stations[6], train_stations[299], peak_type.AM_PEAK)
 # cl = shortest_path(weighted_gr, train_stations[6], train_stations[235], peak_type.AM_PEAK)
 print("From ", train_stations[from_station], "to", train_stations[to_station], "AM Peak time:", travel_time, "Path:", travel_path )
