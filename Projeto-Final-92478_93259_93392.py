@@ -36,8 +36,8 @@ for cn in df_connections.itertuples():
         c = Edge(train_stations[cn.station1], train_stations[cn.station2])
         connections[key1] = c
 
-for e in connections.values():
-    gr.insert_edge(e)
+for edge in connections.values():
+    gr.insert_edge(edge)
 
 print("Stations: ", gr.vertex_count())
 print("Connections: ", gr.edge_count())
@@ -88,13 +88,13 @@ print("G2: ", g2_count, "stations")
 
 # Edges with one vertex/station in g1 and another one in g2
 e_to_cut = []
-for e in gr.edges():
-    if all(ver in g1.vertices() for ver in e.endpoints()):
-        g1.insert_edge(e)
-    elif all(ver in g2.vertices() for ver in e.endpoints()):
-        g2.insert_edge(e)
+for edge in gr.edges():
+    if all(ver in g1.vertices() for ver in edge.endpoints()):
+        g1.insert_edge(edge)
+    elif all(ver in g2.vertices() for ver in edge.endpoints()):
+        g2.insert_edge(edge)
     else:
-        e_to_cut.append(e)
+        e_to_cut.append(edge)
 
 print("Number of connections in G1:", g1.edge_count())
 print("Number of connections in G2:", g2.edge_count())
@@ -105,8 +105,8 @@ plot_edges(g1.edges(), color="xkcd:azure")
 plot_edges(g2.edges(), color="xkcd:aquamarine")
 plot_edges(e_to_cut, color="xkcd:coral", marker="+", markersize=0.9, showgraph=True)
 
-for e in e_to_cut:
-    print(e)
+for edge in e_to_cut:
+    print(edge)
 
 
 
@@ -206,38 +206,53 @@ for cn in weighted_gr.edges():
 print("Stations: ", weighted_gr.vertex_count())
 print("Connections: ", weighted_gr.edge_count())
 
-
 # Próximo passo: pesquisar distancia entre Amersham (id 6) e Wimbledon (id 299).
 def shortest_path(gr, origin, destination, peak):
     cloud = {}
+    paths = {}
     priority_queue = UpdatableBinaryHeap()
     # distances = {}
-    priority_queue.add(0, origin)
+    priority_queue.add(0, (origin, None))
 
     while not priority_queue.is_empty():
-        d, v = priority_queue.first()
+        d, (v, incoming_edge) = priority_queue.first()
+        if v not in paths.keys():
+            paths[v] = None
         cloud[v] = d
         if v is destination:
             break
-        for e in gr.get_incident_edges(v):
-            u = e.opposite(v)
+        for edge in gr.get_incident_edges(v):
+            u = edge.opposite(v)
+            sc_pair = (u, edge)
             if u not in cloud:
-                weight = e.get_time(peak)
-                print(u, weight)
-                if priority_queue.get_key(u) is None or priority_queue.get_key(u) > d + weight:
-                    priority_queue.update_or_add(d + weight, u)
+                if incoming_edge:
+                    lines = incoming_edge.lines
+                else:
+                    lines = edge.lines
+                weight = edge.get_time(peak, lines)
+                if priority_queue.get_key(sc_pair) is None or priority_queue.get_key(sc_pair) > d + weight:
+                    paths[u]= v
+                    priority_queue.update_or_add(d + weight, sc_pair)
 
-    return cloud
+    return cloud[v], get_path(paths, destination)
+
+def get_path(path_dict, origin):
+    if path_dict[origin] is None:
+        return [origin]
+    else:
+        return get_path(path_dict, path_dict[origin]) + [origin]
 
 # Próximo passo: pesquisar distancia entre Amersham (id 6) e Wimbledon (id 299).
 # Baker street = 11; Green Park = 107
+# Amersham = 6; South Harrow = 235
+# Uxbridge = 271; South Harrow = 235
+# Baker street = 11; Notting Hill Gate = 186
 from_station = 11
-to_station = 107
-cl = shortest_path(weighted_gr, train_stations[from_station], train_stations[to_station], peak_type.AM_PEAK)
+to_station = 186
+travel_time, travel_path = shortest_path(weighted_gr, train_stations[from_station], train_stations[to_station], peak_type.AM_PEAK)
 #cl = shortest_path(weighted_gr, train_stations[6], train_stations[299], peak_type.AM_PEAK)
-# Próximo passo: pesquisar distancia entre Amersham (id 6) e South Harrow (id 235).
 # cl = shortest_path(weighted_gr, train_stations[6], train_stations[235], peak_type.AM_PEAK)
-print("From ", train_stations[from_station], "to", train_stations[to_station], "AM Peak time:", cl[train_stations[to_station]] )
+print("From ", train_stations[from_station], "to", train_stations[to_station], "AM Peak time:", travel_time, "Path:", travel_path )
 #print(cl)
 
 # # Bibliografia

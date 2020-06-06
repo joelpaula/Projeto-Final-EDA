@@ -50,8 +50,11 @@ class Connection(Edge):
     def add_line(self, line):
         self.__lines.add(line)
 
-    def get_time(self, peak):
-        return self.__times[peak]
+    def get_time(self, peak, lines):
+        line_change_time = 0
+        if not any(line for line in lines if line in self.__lines):
+            line_change_time = 10
+        return self.__times[peak] + line_change_time
 
     def set_time(self, value, peak):
         self.__times[peak] = value
