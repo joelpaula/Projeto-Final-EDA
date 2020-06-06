@@ -1,8 +1,10 @@
 {
     "cSpell.words": [
         "eigen",
+        "itertuples",
         "numpy",
         "pyplot",
-        "timeit"
+        "timeit",
+        "xkcd"
     ]
 }

@@ -4,10 +4,10 @@ import matplotlib.pyplot as plt
 from enum import Enum
 from haversine import haversine, Unit
 from collections import namedtuple
-from Graph import Graph, Edge
-from TrainGraph import *
+from Graph import Graph, Edge #, Vertex
+from TrainGraph import Station, Connection, peak_type
 from DiGraph import DiGraph
-from BinaryHeap import BinaryHeap
+from UpdatableBinaryHeap import UpdatableBinaryHeap
 
 
 df_stations = pd.read_csv("LondonTube/london.stations.txt")
@@ -210,25 +210,35 @@ print("Connections: ", weighted_gr.edge_count())
 # Próximo passo: pesquisar distancia entre Amersham (id 6) e Wimbledon (id 299).
 def shortest_path(gr, origin, destination, peak):
     cloud = {}
-    priority_queue = BinaryHeap()
+    priority_queue = UpdatableBinaryHeap()
     # distances = {}
     priority_queue.add(0, origin)
 
     while not priority_queue.is_empty():
         d, v = priority_queue.first()
         cloud[v] = d
+        if v is destination:
+            break
         for e in gr.get_incident_edges(v):
             u = e.opposite(v)
             if u not in cloud:
                 weight = e.get_time(peak)
                 print(u, weight)
-                priority_queue.add(d + weight, u)
+                if priority_queue.get_key(u) is None or priority_queue.get_key(u) > d + weight:
+                    priority_queue.update_or_add(d + weight, u)
 
     return cloud
 
-cl = shortest_path(weighted_gr, train_stations[6], train_stations[299], peak_type.AM_PEAK)
-print(cl)
-
+# Próximo passo: pesquisar distancia entre Amersham (id 6) e Wimbledon (id 299).
+# Baker street = 11; Green Park = 107
+from_station = 11
+to_station = 107
+cl = shortest_path(weighted_gr, train_stations[from_station], train_stations[to_station], peak_type.AM_PEAK)
+#cl = shortest_path(weighted_gr, train_stations[6], train_stations[299], peak_type.AM_PEAK)
+# Próximo passo: pesquisar distancia entre Amersham (id 6) e South Harrow (id 235).
+# cl = shortest_path(weighted_gr, train_stations[6], train_stations[235], peak_type.AM_PEAK)
+print("From ", train_stations[from_station], "to", train_stations[to_station], "AM Peak time:", cl[train_stations[to_station]] )
+#print(cl)
 
 # # Bibliografia
 # Demmel, J. (2009). CS267 lecture 13 – Graph Partitioning. Obtido em 25 de Maio de 2020, de U.C. Berkeley CS267/EngC233: https://people.eecs.berkeley.edu/~demmel/cs267_Spr09/Lectures/lecture13_partition_jwd09.ppt

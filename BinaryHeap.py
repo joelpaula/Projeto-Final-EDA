@@ -4,15 +4,15 @@ class BinaryHeap(object):
             self._element = element
             self._key = key
         def __str__(self):
-            return self._key
+            return f"{self._key}: {self.element}"
         def __repr__(self):
-                return str(self)
+            return str(self)
 
 
     def __init__(self):
         self._heap = []
 
-    def __len__(self):
+    def _len__(self):
         return len(self._heap)
     
     @staticmethod
@@ -44,7 +44,7 @@ class BinaryHeap(object):
         k, v = self.inspect_first()
         last = self._heap.pop()
         if not self.is_empty():
-            self._heap[0]     
+            self._heap[0] = last  
             self._bubble_down(0)
         return k, v
     
