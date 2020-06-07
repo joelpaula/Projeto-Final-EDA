@@ -16,109 +16,109 @@ df_connections = pd.read_csv("LondonTube/london.connections.txt")
 df_connections.head()
 
 
-gr = Graph()
+# gr = Graph()
 
-train_stations = {}  # TODO Use BST
-for ts in df_stations.itertuples():
-    s = Station(id=ts.id,
-                name=ts.name,
-                latitude=ts.latitude,
-                longitude=ts.longitude)
-    gr.insert_vertex(s)
-    train_stations[s.id] = s
+# train_stations = {} 
+# for ts in df_stations.itertuples():
+#     s = Station(id=ts.id,
+#                 name=ts.name,
+#                 latitude=ts.latitude,
+#                 longitude=ts.longitude)
+#     gr.insert_vertex(s)
+#     train_stations[s.id] = s
 
-connections = {}
-for cn in df_connections.itertuples():
-    key1 = (cn.station1, cn.station2)
-    key2 = (cn.station2, cn.station1)
-    if key1 not in connections.keys() and key2 not in connections.keys():
-        c = Edge(train_stations[cn.station1], train_stations[cn.station2])
-        connections[key1] = c
+# connections = {}
+# for cn in df_connections.itertuples():
+#     key1 = (cn.station1, cn.station2)
+#     key2 = (cn.station2, cn.station1)
+#     if key1 not in connections.keys() and key2 not in connections.keys():
+#         c = Edge(train_stations[cn.station1], train_stations[cn.station2])
+#         connections[key1] = c
 
-for edge in connections.values():
-    gr.insert_edge(edge)
+# for edge in connections.values():
+#     gr.insert_edge(edge)
 
-print("Stations: ", gr.vertex_count())
-print("Connections: ", gr.edge_count())
+# print("Stations: ", gr.vertex_count())
+# print("Connections: ", gr.edge_count())
 
-plt.rcParams['figure.dpi'] = 150
+# plt.rcParams['figure.dpi'] = 150
 
-from math import cos, radians
-from statistics import mean
+# from math import cos, radians
+# from statistics import mean
 
-def plot_edges(lst, color="xkcd:royal blue", marker="o", markersize=1, linewidthwidth=0.5, showgraph=False):
-    for e in lst:
-        xs = [e.origin.longitude, e.destination.longitude]
-        ys = [e.origin.latitude, e.destination.latitude]
-        plt.plot(xs, ys, c=color, marker=marker, markersize=markersize, linewidth=linewidthwidth)
+# def plot_edges(lst, color="xkcd:royal blue", marker="o", markersize=1, linewidthwidth=0.5, showgraph=False):
+#     for e in lst:
+#         xs = [e.origin.longitude, e.destination.longitude]
+#         ys = [e.origin.latitude, e.destination.latitude]
+#         plt.plot(xs, ys, c=color, marker=marker, markersize=markersize, linewidth=linewidthwidth)
 
-    if showgraph:
-        # Mercator projection aspect ratio approximation at this central latitude 
-        mercator_aspect_ratio = 1/cos(radians(mean(ys)))
-        plt.axes().set_aspect(mercator_aspect_ratio)
+#     if showgraph:
+#         # Mercator projection aspect ratio approximation at this central latitude 
+#         mercator_aspect_ratio = 1/cos(radians(mean(ys)))
+#         plt.axes().set_aspect(mercator_aspect_ratio)
 
-        plt.axis('off')
-        plt.show()
+#         plt.axis('off')
+#         plt.show()
 
-plot_edges(gr.edges(), showgraph=True)
+# plot_edges(gr.edges(), showgraph=True)
 
-m_L = np.zeros([gr.vertex_count(), gr.vertex_count()], int)
-vertices = list(gr.vertices())
+# m_L = np.zeros([gr.vertex_count(), gr.vertex_count()], int)
+# vertices = list(gr.vertices())
 
-for i in range(m_L.shape[0]):
-    for j in range(m_L.shape[1]):
-        if i == j:
-            m_L[i, j] = gr.degree(vertices[i])
-        elif gr.get_edge(vertices[i], vertices[j]):
-            m_L[i, j] = -1
+# for i in range(m_L.shape[0]):
+#     for j in range(m_L.shape[1]):
+#         if i == j:
+#             m_L[i, j] = gr.degree(vertices[i])
+#         elif gr.get_edge(vertices[i], vertices[j]):
+#             m_L[i, j] = -1
 
-# Get EigenVector
-eigenvalues, v = np.linalg.eig(m_L)
-eigen_index = np.argsort(eigenvalues)[1]
-ev2nd = v[:, eigen_index]
+# # Get EigenVector
+# eigenvalues, v = np.linalg.eig(m_L)
+# eigen_index = np.argsort(eigenvalues)[1]
+# ev2nd = v[:, eigen_index]
 
-g1 = Graph()
-g2 = Graph()
+# g1 = Graph()
+# g2 = Graph()
 
-for i in range(ev2nd.size):
-    if ev2nd[i] < 0:
-        g1.insert_vertex(vertices[i])
-    else:
-        g2.insert_vertex(vertices[i])
+# for i in range(ev2nd.size):
+#     if ev2nd[i] < 0:
+#         g1.insert_vertex(vertices[i])
+#     else:
+#         g2.insert_vertex(vertices[i])
 
-g1_count = g1.vertex_count()
-g2_count = g2.vertex_count()
+# g1_count = g1.vertex_count()
+# g2_count = g2.vertex_count()
 
-print("G1: ", g1_count, "stations")
-print("G2: ", g2_count, "stations")
+# print("G1: ", g1_count, "stations")
+# print("G2: ", g2_count, "stations")
 
-# Edges with one vertex/station in g1 and another one in g2
-e_to_cut = []
-for edge in gr.edges():
-    if all(ver in g1.vertices() for ver in edge.endpoints()):
-        g1.insert_edge(edge)
-    elif all(ver in g2.vertices() for ver in edge.endpoints()):
-        g2.insert_edge(edge)
-    else:
-        e_to_cut.append(edge)
+# # Edges with one vertex/station in g1 and another one in g2
+# e_to_cut = []
+# for edge in gr.edges():
+#     if all(ver in g1.vertices() for ver in edge.endpoints()):
+#         g1.insert_edge(edge)
+#     elif all(ver in g2.vertices() for ver in edge.endpoints()):
+#         g2.insert_edge(edge)
+#     else:
+#         e_to_cut.append(edge)
 
-print("Number of connections in G1:", g1.edge_count())
-print("Number of connections in G2:", g2.edge_count())
-print("Number of cuts:", len(e_to_cut))
-print("Minimum Cut Ratio:", len(e_to_cut) / (g1_count * g2_count))
+# print("Number of connections in G1:", g1.edge_count())
+# print("Number of connections in G2:", g2.edge_count())
+# print("Number of cuts:", len(e_to_cut))
+# print("Minimum Cut Ratio:", len(e_to_cut) / (g1_count * g2_count))
 
-plot_edges(g1.edges(), color="xkcd:azure")
-plot_edges(g2.edges(), color="xkcd:aquamarine")
-plot_edges(e_to_cut, color="xkcd:coral", marker="+", markersize=0.9, showgraph=True)
+# plot_edges(g1.edges(), color="xkcd:azure")
+# plot_edges(g2.edges(), color="xkcd:aquamarine")
+# plot_edges(e_to_cut, color="xkcd:coral", marker="+", markersize=0.9, showgraph=True)
 
-for edge in e_to_cut:
-    print(edge)
+# for edge in e_to_cut:
+#     print(edge)
 
 
 
 # PARTE II
 
-df_interstations = pd.read_csv("LondonTube/interstation v2.csv", names=["line", "from_id", "to_id", "distance", "off_peak", "am_peak", "inter_peak"], skiprows=1)
+df_interstations = pd.read_csv("LondonTube/interstation.csv", names=["line", "from_id", "to_id", "distance", "off_peak", "am_peak", "inter_peak"], skiprows=1)
 print("Distâncias e tempos entre estações:", len(df_interstations.index))
 df_lines = pd.read_csv("LondonTube/london.lines.txt")
 print("Linhas:", len(df_lines.index))
@@ -130,50 +130,8 @@ for l in df_lines.itertuples():
 print(london_lines)
 
 
-# De seguida lemos as ligações entre as estações, por linha, colocando-as num dicionário, de forma a facilitar a sua utilização quando formos adicionar as ligações entre estações.
-interstations = {} # {(from_station, to_station): {line: ConnectionWeights}}
-ConnectionWeights = namedtuple("ConnectionWeights", "line, from_station, to_station, distance_km, off_peak_mins, am_peak_mins, inter_peak_mins")
-for line in df_interstations.itertuples():
-    key = (line.from_id, line.to_id)
-    if key not in interstations.keys():
-        interstations[(line.from_id, line.to_id)] = {}
-    interstations[(line.from_id, line.to_id)][line.line] = ConnectionWeights(line.line, line.from_id, line.to_id, line.distance, line.off_peak, line.am_peak, line.inter_peak)
-
-print("Tempos e distâncias de ligação lidos:", sum(len(it.keys()) for it in interstations.values()))
-
-
 # Criar o grafo pesado e dirigido:
 subway_wgr = TrainGraph()
-
-def get_weights(from_ts, to_ts, line, use_oposite_direction=False, calculate_weights=False):
-    """Get the weights (time and distance) for a line from station `from_ts` to 
-    station `to_ts`
-        : use_oposite_direction (bool): When interstation weights are not found 
-    from_ts` to `to_ts`, then we try to get from `to_ts`to `from_ts`.
-        : calculate_weights (bool): When interstation weights are not found from 
-    `from_ts` to `to_ts` (and from `to_ts`to `from_ts`, depending on 
-    use_oposite_direction), calculate the direct distance and assume a time based 
-    on 30km/h speed.
-    """
-    weights = None
-    key = (from_ts, to_ts)
-    if key in interstations.keys():
-        if line in interstations[key].keys():
-            weights = interstations[key][line]
-        else:
-            weights = next(iter(interstations[key].values()))
-    elif use_oposite_direction and (to_ts, from_ts) in interstations.keys():
-        key = (to_ts, from_ts)
-        if line in interstations[key].keys():
-            weights = interstations[key][line]
-        else:
-            weights = next(iter(interstations[key].values()))
-    elif calculate_weights:
-        distance_kms = haversine(train_stations[from_ts].geo_ref(), train_stations[to_ts].geo_ref())
-        # assume 30km/h speed
-        time_mins = round(distance_kms * 2, 4) # distance x 60mins / 30km
-        weights = ConnectionWeights(line, from_ts, to_ts, distance_kms, time_mins, time_mins, time_mins)
-    return weights
 
 # read train stations    
 train_stations = {} 
@@ -185,29 +143,55 @@ for ts in df_stations.itertuples():
     subway_wgr.insert_vertex(s)
     train_stations[s.id] = s
 
-# now read all the connections and create the edges for these connections
-for cn in df_connections.itertuples():
-    weights = get_weights(cn.station1, cn.station2, cn.line)
-    c = subway_wgr.get_edge(train_stations[cn.station1], train_stations[cn.station2])
-    if c:
-        # connection already exists - add the line
-        c.add_line(cn.line)
-    elif weights:
-        c = Connection(train_stations[cn.station1], train_stations[cn.station2], weights.distance_km,
-            weights.off_peak_mins, weights.am_peak_mins, weights.inter_peak_mins, cn.line)
-        subway_wgr.insert_edge(c)
+# now read all the inter stations from file and add them as connections to the intermediate dictionary 
+connections = {}
+for cn in df_interstations.itertuples():
+    key = (cn.from_id, cn.to_id)
+    if key not in connections.keys():
+        c = Connection(train_stations[cn.from_id], train_stations[cn.to_id], 
+            cn.distance, cn.off_peak, cn.am_peak, cn.inter_peak, cn.line)
+        connections[key] = c
     else:
-        c = Connection(train_stations[cn.station1], train_stations[cn.station2], 0, 0, 0, 0, cn.line)
+        connections[key].add_line(cn.line) 
+
+# now read all the connections from file and add them to the intermediate dictionary
+for cn in df_connections.itertuples():
+    key = (cn.station1, cn.station2)
+    if key in connections.keys():
+        c = connections[key]
+        if cn.line not in c.lines:
+            # connection already exists - add the line
+            c.add_line(cn.line)
+    else:
+        c = Connection(train_stations[cn.station1], train_stations[cn.station2], 0, 
+            cn.time, cn.time, cn.time, cn.line)
+        connections[key]= c
+
+# Now check for any missing opposite direction edges
+for cn in connections.values():
+    # correct non existing distance/time
+    if cn.distance_km == 0:
+        distance_kms = haversine(cn.origin.geo_ref(), cn.destination.geo_ref())
+        cn.distance_km = distance_kms
+        if cn.get_time(peak_type.OFF_PEAK, cn.lines) == 0:
+            time_mins = round(distance_kms * 2, 4) # distance x 60mins / 30km
+            cn.set_time(peak_type.OFF_PEAK, time_mins)
+            cn.set_time(peak_type.AM_PEAK, time_mins)
+            cn.set_time(peak_type.INTER_PEAK, time_mins)
+    # check opposite exists or create otherwise
+    key_opposite = (cn.destination.id, cn.origin.id)
+    if not key_opposite in connections.keys():
+        line = list(cn.lines)[0]
+        c = Connection(cn.destination, cn.origin, cn.distance_km, 
+            cn.get_time(peak_type.OFF_PEAK, cn.lines), cn.get_time(peak_type.AM_PEAK, cn.lines), 
+            cn.get_time(peak_type.INTER_PEAK, cn.lines), line)
+        for line in cn.lines:
+            c.add_line(line)
         subway_wgr.insert_edge(c)
 
-# calculate missing weights (distance + times)
-for cn in subway_wgr.edges():
-    if cn.distance_km == 0:
-        weights = get_weights(cn.origin.id, cn.destination.id, 0, True, True)
-        cn.distance_km = weights.distance_km
-        cn.set_time(weights.am_peak_mins, peak_type.AM_PEAK)
-        cn.set_time(weights.inter_peak_mins, peak_type.INTER_PEAK)
-        cn.set_time(weights.off_peak_mins, peak_type.OFF_PEAK)
+# Insert edges into graph
+for edge in connections.values():
+    subway_wgr.insert_edge(edge)
 
 print("Stations: ", subway_wgr.vertex_count())
 print("Connections: ", subway_wgr.edge_count())
@@ -219,8 +203,8 @@ print("Connections: ", subway_wgr.edge_count())
 # Amersham = 6; South Harrow = 235
 # Uxbridge = 271; South Harrow = 235
 # Baker street = 11; Notting Hill Gate = 186
-from_station = 11
-to_station = 186
+from_station = 6
+to_station = 299
 travel_time, travel_path = subway_wgr.shortest_path(train_stations[from_station], train_stations[to_station], peak_type.AM_PEAK)
 #cl = shortest_path(weighted_gr, train_stations[6], train_stations[299], peak_type.AM_PEAK)
 # cl = shortest_path(weighted_gr, train_stations[6], train_stations[235], peak_type.AM_PEAK)

@@ -58,7 +58,7 @@ class Connection(Edge):
             line_change_time = 10
         return self.__times[peak] + line_change_time
 
-    def set_time(self, value, peak):
+    def set_time(self, peak, value):
         self.__times[peak] = value
 
     def __str__(self):
@@ -69,7 +69,7 @@ class Connection(Edge):
 
 class TrainGraph(DiGraph):
     def __init__(self):
-        super().__init__(directed=False)
+        super().__init__(directed=True)
 
     def shortest_path(self, origin, destination, peak):
         """"
