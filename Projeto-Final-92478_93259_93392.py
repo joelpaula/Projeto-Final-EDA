@@ -43,6 +43,9 @@ print("Connections: ", gr.edge_count())
 
 plt.rcParams['figure.dpi'] = 150
 
+from math import cos, radians
+from statistics import mean
+
 def plot_edges(lst, color="xkcd:royal blue", marker="o", markersize=1, linewidthwidth=0.5, showgraph=False):
     for e in lst:
         xs = [e.origin.longitude, e.destination.longitude]
@@ -50,6 +53,10 @@ def plot_edges(lst, color="xkcd:royal blue", marker="o", markersize=1, linewidth
         plt.plot(xs, ys, c=color, marker=marker, markersize=markersize, linewidth=linewidthwidth)
 
     if showgraph:
+        # Mercator projection aspect ratio approximation at this central latitude 
+        mercator_aspect_ratio = 1/cos(radians(mean(ys)))
+        plt.axes().set_aspect(mercator_aspect_ratio)
+
         plt.axis('off')
         plt.show()
 
@@ -111,7 +118,7 @@ for edge in e_to_cut:
 
 # PARTE II
 
-df_interstations = pd.read_csv("LondonTube/interstation v2.csv", names=["line", "from_id", "to_id", "distance", "off_peak", "am_peak", "inter_peak"])
+df_interstations = pd.read_csv("LondonTube/interstation v2.csv", names=["line", "from_id", "to_id", "distance", "off_peak", "am_peak", "inter_peak"], skiprows=1)
 print("Distâncias e tempos entre estações:", len(df_interstations.index))
 df_lines = pd.read_csv("LondonTube/london.lines.txt")
 print("Linhas:", len(df_lines.index))
