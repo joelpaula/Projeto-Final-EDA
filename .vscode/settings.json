@@ -7,5 +7,6 @@
         "pyplot",
         "timeit",
         "xkcd"
-    ]
+    ],
+    "python.pythonPath": "/opt/python/latest/bin/python"
 }

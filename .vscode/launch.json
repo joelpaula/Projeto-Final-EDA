@@ -7,7 +7,7 @@
         {
             "name": "Python: Current File",
             "type": "python",
-            "pythonPath":"${config:python.interpreterPath}", 
+            "pythonPath":"${command:python.interpreterPath}", 
             "request": "launch",
             "program": "${file}",
             "cwd": "${workspaceRoot}",
