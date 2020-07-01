@@ -17,3 +17,5 @@
 
 
 To check the results, have a look at the [Jupyter Notebook](Projeto-Final-92478_93259_93392.ipynb)
+
+We got a good grade with this work. We should have made a conclusion to end the work, but we were already tired when we reached that stage 😁.
