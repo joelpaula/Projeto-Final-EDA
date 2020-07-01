@@ -16,7 +16,7 @@
 >27-05-2020
 
 
-To check the results, have a look at the [Jupyter Notebook](Projeto-Final-92478_93259_93392.ipynb).
+To check the results, have a look at the [Jupyter Notebook](04PL_Projeto-Final-EDA.ipynb).
 
 We made this work by [Mob Programming](https://en.wikipedia.org/wiki/Mob_programming) around one of our computers for several hours a day, in a period of about 3 weeks. 
 We used Visual Studio Code as our editor and also [CoCalc](https://cocalc.com/) on those brief periods when we needed to work solo on different stuff (refactoring code, polishing the structure, adding details to our text). At the same time, one of us was keeping a copy in GitHub, just as a safety measure.
